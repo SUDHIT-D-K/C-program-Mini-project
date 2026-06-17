@@ -1,0 +1,65 @@
+Act as an expert Senior Systems and Graphics Engineer writing in standard C (C99). Write a complete, single-file, production-ready command-line application named `main.c` that implements a interactive "2D Character Graphics Editor". The application operates on a static vector object system and rasterizes shapes onto an 80-column by 25-row character-based grid canvas.
+
+The program must compile cleanly with `gcc -Wall -Wextra -std=c99 main.c -o graphics_editor` without any warnings or external library dependencies beyond standard C headers (`stdio.h`, `stdlib.h`, `math.h`, `stdbool.h`).
+
+---
+
+### 1. DATA STRUCTURES & CANVAS ARCHITECTURE
+- Define constants for canvas dimensions: `WIDTH = 80` and `HEIGHT = 25`.
+- Define constants for max limits (e.g., maximum number of concurrent vector objects = 100).
+- Create an enum `ShapeType` supporting: `LINE`, `RECTANGLE`, `CIRCLE`, `TRIANGLE`.
+- Implement a `Shape` struct containing:
+  - An integer `id` (automatically incremented and assigned upon creation).
+  - A `ShapeType` field.
+  - Coordinate/dimension parameters mapping to a union or dedicated fields:
+    - Line: x1, y1, x2, y2
+    - Rectangle: top-left x, top-left y, width, height
+    - Circle: center x, center y, radius
+    - Triangle: x1, y1, x2, y2, x3, y3
+- Maintain an active global or dynamically tracked array of these `Shape` structs representing the vector scene graph.
+- Implement a 2D character matrix buffer `char canvas[HEIGHT][WIDTH]` to represent the drawing screen.
+
+---
+
+### 2. MATH & RASTERIZATION ALGORITHMS
+Implement the following algorithmic drawing functions that directly manipulate the `canvas` grid buffer. Ensure all pixel plotting includes strict boundary checking to prevent array out-of-bounds writing (`0 <= x < WIDTH` and `0 <= y < HEIGHT`).
+
+- **Plot Point**: A helper function to safely write a specific character (e.g., '#') to `canvas[y][x]`.
+- **Bresenham's Line Algorithm**: Plot a line between any two coordinate points `(x1, y1)` and `(x2, y2)`. Handle all octants cleanly using integer arithmetic.
+- **Midpoint Circle Algorithm**: Plot a circle outline given a center `(cx, cy)` and a radius `r`.
+- **Rectangle Drawing**: Render an outlined rectangular border by utilizing your line drawing algorithm or direct point loops for top, bottom, left, and right borders.
+- **Triangle Drawing**: Render an outlined triangle by calling the line algorithm three times sequentially to connect vertex 1 to 2, 2 to 3, and 3 to 1.
+
+---
+
+### 3. RENDERING ENGINE & AXIS RULERS
+Implement a function to update and print the canvas. The engine must:
+1. Clear the canvas memory buffer to empty spacing characters (`' '`).
+2. Traverse the active vector shapes list from index 0 to N and invoke the appropriate rasterization algorithms onto the buffer to redraw the scene from scratch.
+3. Print the rendered canvas to stdout, surrounded by numeric axis rulers:
+   - A top horizontal ruler marking column indices `0` to `79` (e.g., printing tens digits on one line and units digits on the next, or a structural border).
+   - Side vertical rulers tracking row indices `0` to `24`.
+
+---
+
+### 4. OBJECT MANAGEMENT CORE
+Provide modular CRUD functions to manage the vector array:
+- **Add Object**: Append a new shape to the array, auto-assigning a unique, sequential ID.
+- **List All Objects**: Print a well-formatted console table detailing all shapes currently placed on the canvas, showing their ID, Type, and coordinate parameters.
+- **Modify Object**: Prompt for an ID. If found, allow the user to input completely new coordinate/dimension parameters for that specific shape in-place.
+- **Delete Object**: Prompt for an ID. If found, remove it from the vector array and cleanly shift subsequent array elements down to close the gap.
+- **Clear Canvas**: Wipe the active shape array count back to zero, removing all objects.
+
+---
+
+### 5. INTERACTIVE CLI MENU INTERFACE
+In the `main` function loop, provide a persistent terminal menu that prints options, parses inputs securely against unexpected user string typing, and executes actions:
+1. Display Canvas (re-renders and prints the scene with rulers).
+2. Add Object (submenu to pick Circle, Rectangle, Line, or Triangle, then prompts for valid numeric coordinates).
+3. Delete Object (prompts for ID).
+4. Modify Object (prompts for ID, then updates properties).
+5. List All Objects (displays the shape property table).
+6. Clear Canvas (resets the shape database).
+7. Exit (gracefully terminates program).
+
+Write clean, robust, and heavily commented code. Avoid any memory leaks or buffer overflows. Ensure user input reading using `scanf` cleans up the newline buffers safely.
